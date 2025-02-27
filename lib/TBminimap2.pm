@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-package TBbwa;
+package TBminimap2;
 
 use strict;
 use warnings;
@@ -11,16 +11,16 @@ use vars qw($VERSION @ISA @EXPORT);
 
 $VERSION =  1.0.2;
 @ISA     =  qw(Exporter);
-@EXPORT  =  qw(tbbwa);
+@EXPORT  =  qw(tbminimap2);
 
-sub tbbwa {
+sub tbminimap2 {
    # get parameter and input from front-end.
    my $logprint         =  shift;
    my $W_dir            =  shift;
    my $VAR_dir          =  shift;
-   my $BWA_dir          =  shift;
+   my $MINIMAP2_dir     =  shift;
    my $SAMTOOLS_dir     =  shift;
-   my $BWA_call         =  shift;
+   my $MINIMAP2_call    =  shift;
    my $SAMTOOLS_call    =  shift;
    my $BAM_OUT          =  shift;
    my $ref              =  shift;
@@ -66,28 +66,20 @@ sub tbbwa {
       my $commandline         =  "";
       unlink("$BAM_OUT/$logfile");
       print $logprint "<INFO>\t",timer(),"\tFound at most two files for $fullID!\n";
-      # index reference with bwa, if it isn't indexed already.
+      # index reference with minimap2, if it isn't indexed already.
       unless(-f "$VAR_dir/$ref.amb" && -f "$VAR_dir/$ref.ann" && -f "$VAR_dir/$ref.bwt" && -f "$VAR_dir/$ref.pac" && -f "$VAR_dir/$ref.sa"){
          print $logprint "<INFO>\t",timer(),"\tStart indexing reference genome $ref...\n";
-         print $logprint "<INFO>\t",timer(),"\t$BWA_call index $VAR_dir/$ref >> $BAM_OUT/$logfile\n";
-         $commandline = "$BWA_call index $VAR_dir/$ref 2>> $BAM_OUT/$logfile";
+         print $logprint "<INFO>\t",timer(),"\t$MINIMAP2_call index $VAR_dir/$ref >> $BAM_OUT/$logfile\n";
+         $commandline = "$MINIMAP2_call index $VAR_dir/$ref 2>> $BAM_OUT/$logfile";
          system($commandline)==0 or die "$commandline failed: $?\n";
          print $logprint "<INFO>\t",timer(),"\tFinished indexing reference genome $ref!\n";
       }
-      # index reference with samtools, if it isn't indexed already.
-      unless(-f "$VAR_dir/$ref.fai") {
-         print $logprint "<INFO>\t",timer(),"\tStart using samtools for indexing of $ref...\n";
-         print $logprint "<INFO>\t",timer(),"\t$SAMTOOLS_call faidx $VAR_dir/$ref >> $BAM_OUT/$logfile\n";
-         $commandline = "$SAMTOOLS_call faidx $VAR_dir/$ref >> $BAM_OUT/$logfile >> $BAM_OUT/$logfile";
-         system($commandline)==0 or die "$commandline failed: $?\n";
-         print $logprint "<INFO>\t",timer(),"\tFinished using samtools for indexing of $ref!\n";
-      }
-      # map reads with bwa-mem and -t parameter.
-      print $logprint  "<INFO>\t",timer(),"\tStart BWA mapping for $fullID...\n";
-      print $logprint "<INFO>\t",timer(),"\t$BWA_call mem -t $threads -R $read_naming_scheme $VAR_dir/$ref $files_string > $BAM_OUT/$fullID.sam 2>> $BAM_OUT/$logfile\n";
-      $commandline = "$BWA_call mem -t $threads -R $read_naming_scheme $VAR_dir/$ref $files_string > $BAM_OUT/$fullID.sam 2>> $BAM_OUT/$logfile";
+      # map reads with minimap2 and -t parameter.
+      print $logprint  "<INFO>\t",timer(),"\tStart MINIMAP2 mapping for $fullID...\n";
+      print $logprint "<INFO>\t",timer(),"\t$MINIMAP2_call -ax map-ont -t $threads $VAR_dir/$ref $files_string > $BAM_OUT/$fullID.sam 2>> $BAM_OUT/$logfile\n";
+      $commandline = "$MINIMAP2_call mem -t $threads -R $read_naming_scheme $VAR_dir/$ref $files_string > $BAM_OUT/$fullID.sam 2>> $BAM_OUT/$logfile";
       system($commandline)==0 or die "$commandline failed: $?\n";
-      print $logprint "<INFO>\t",timer(),"\tFinished BWA mapping for $fullID!\n";
+      print $logprint "<INFO>\t",timer(),"\tFinished MINIMAP2 mapping for $fullID!\n";
       # convert from .sam to .bam format with samtools -S (sam input) and (-b bam output) and -T (reference).
       print $logprint "<INFO>\t",timer(),"\tStart using samtools to convert from .sam to .bam for $fullID...\n";
       print $logprint "<INFO>\t",timer(),"\t$SAMTOOLS_call view -@ $threads -b -T $VAR_dir/$ref -o $BAM_OUT/$fullID.bam $BAM_OUT/$fullID.sam 2>> $BAM_OUT/$logfile\n";
@@ -125,8 +117,8 @@ sub tbbwa {
       unlink("$BAM_OUT/$fullID.sorted.bam");
       unlink("$BAM_OUT/$fullID.sorted.bam.bai");
       # renaming files.
-      move("$BAM_OUT/$fullID.nodup.bam","$BAM_OUT/$fullID.bam")            || die print $logprint "<ERROR>\t",timer(),"\tmove failed: TBbwa.pm line: ", __LINE__ , " \n";
-      move("$BAM_OUT/$fullID.nodup.bam.bai","$BAM_OUT/$fullID.bam.bai")    || die print $logprint "<ERROR>\t",timer(),"\tmove failed: TBbwa.pm line: ", __LINE__ , " \n";
+      move("$BAM_OUT/$fullID.nodup.bam","$BAM_OUT/$fullID.bam")            || die print $logprint "<ERROR>\t",timer(),"\tmove failed: TBminimap2.pm line: ", __LINE__ , " \n";
+      move("$BAM_OUT/$fullID.nodup.bam.bai","$BAM_OUT/$fullID.bam.bai")    || die print $logprint "<ERROR>\t",timer(),"\tmove failed: TBminimap2.pm line: ", __LINE__ , " \n";
       # finished.
       print $logprint "<INFO>\t",timer(),"\tFinished mapping for $fullID!\n";
    }
