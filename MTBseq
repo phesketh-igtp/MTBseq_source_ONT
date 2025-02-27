@@ -201,6 +201,7 @@ unless(($step eq 'TBfull'     )  ||
 if($continue         eq    ''    ) { $continue           =     0;                                  }
 if($samples          eq    ''    ) { $samples            =     "NONE";                             }
 if($group_name       eq    ''    ) { $group_name         =     "NONE";                             }
+if($mapper           eq    ''    ) { $mapper         	 =     "TBbwa";                            }
 if($resi_list_master eq    ''    ) { $resi_list_master   =     "NONE";                             }
 if($int_regions      eq    ''    ) { $int_regions        =     "NONE";                             }
 if($categories       eq    ''    ) { $categories         =     "NONE";                             }
@@ -220,6 +221,7 @@ if($distance         eq    ''    ) { $distance           =     12;              
 if($quiet            eq    ''    ) { $quiet              =     0;                                  }
 if($threads          eq    ''    ) { $threads            =     1;                                  }
 
+
 # set name of $ref fasta file and gene annotation.
 my $refg    =   $ref;
 $ref        .=  ".fasta";
@@ -230,7 +232,7 @@ if($ref eq 'M._tuberculosis_H37Rv_2015-11-13.fasta') {
    $resi_list_master    =   "$RealBin/var/res/MTB_Resistance_Mediating.txt"             if($resi_list_master eq 'NONE');   # MTBC Resistance mediating variants and MTBC phylogentic SNPs.
    $int_regions         =   "$RealBin/var/res/MTB_Extended_Resistance_Mediating.txt"    if($int_regions eq 'NONE');        # MTBC extended intergenic resistance mediating positions.
    $categories          =   "$RealBin/var/cat/MTB_Gene_Categories.txt"                  if($categories eq 'NONE');         # MTBC essential and non-essential genes.
-   $basecalib           =   "$RealBin/var/res/MTB_Base_Calibration_List.vcf"                if($basecalib eq 'NONE');          # MTBC base calibration list. Known SNP positions for base call recalibration.
+   $basecalib           =   "$RealBin/var/res/MTB_Base_Calibration_List.vcf"            if($basecalib eq 'NONE');          # MTBC base calibration list. Known SNP positions for base call recalibration.
 }
 
 # create log file and log on screen if --quiet is unset.
@@ -338,6 +340,7 @@ if(-f $samples) {
 # jump to certain pipeline steps.
 if($step eq 'TBfull'       ) { goto TBfull      }
 if($step eq 'TBbwa'        ) { goto TBbwa       }
+if($step eq 'TBminimap2'   ) { goto TBminimap2  }
 if($step eq 'TBrefine'     ) { goto TBrefine    }
 if($step eq 'TBpile'       ) { goto TBpile      }
 if($step eq 'TBlist'       ) { goto TBlist      }
@@ -366,6 +369,20 @@ if(scalar(@fastq_files) == 0) {
    print $logprint "\n<ERROR>\t",timer(),"\tNo read files to map! Check content of $W_dir!\n";
    exit 1;
 }
+
+TBminimap2:
+if($step eq 'TBminimap2') {
+   print $logprint "\n<INFO>\t",timer(),"\t### [TBminimap2] selected ###\n";
+}
+opendir(WORKDIR,"$W_dir")       || die print $logprint "<ERROR>\t",timer(),"\tCan\'t open directory $W_dir: MTBseq.pl line: ", __LINE__ ," \n";
+@fastq_files      =  grep { $_ =~ /^\w.*R\d+\.f(ast)?q\.gz/ && -f "$W_dir/$_"    }  readdir(WORKDIR);
+closedir(WORKDIR);
+
+if(scalar(@fastq_files) == 0) {
+   print $logprint "\n<ERROR>\t",timer(),"\tNo read files to map! Check content of $W_dir!\n";
+   exit 1;
+}
+
 
 system("mkdir -p $BAM_OUT");
 system("mkdir -p $GATK_OUT");
