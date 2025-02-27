@@ -8,6 +8,7 @@ use Cwd;
 use Getopt::Long;
 use IPC::Cmd qw[can_run run];
 use TBbwa;
+use TBminimap2;
 use TBstats;
 use TBrefine;
 use TBpile;
@@ -47,6 +48,7 @@ my $GROUPS_OUT    =     "$W_dir/Groups";
 # define PATHs.
 my $VAR_dir       =     "$RealBin/var/ref";
 my $BWA_dir       =     "$RealBin/opt/bwa_0.7.17";
+my $MINIMAP2_dir  =     "minimap2"; #this might be incorrect
 my $SAMTOOLS_dir  =     "$RealBin/opt/samtools_1.6";
 my $PICARD_dir    =     "$RealBin/opt/picard_2.17.0";
 my $GATK_dir      =     "$RealBin/opt/GenomeAnalysisTK_3.8";
@@ -112,10 +114,11 @@ GetOptions('step:s'        =>    \$step,
           );
 
 #set tool calls
-my $GATK_call       =   "gatk3";
-my $PICARD_call     =   "picard";
-my $SAMTOOLS_call     =   "samtools";
-my $BWA_call     =   "bwa";
+my $GATK_call       	=   "gatk3";
+my $PICARD_call     	=   "picard";
+my $SAMTOOLS_call     	=   "samtools";
+my $BWA_call     	=   "bwa";
+my $MINIMAP2_call     	=   "minimap2";
 
 # print help message if specified or error if step is not defined or wrong.
 if($help eq '1') { help($VERSION);     exit 0; }
@@ -132,7 +135,7 @@ for my $module (qw(
         print "<INFO>\t",timer(),"\tFound perl module: $module\n";}}
 
 # check for neccessary programs
-for my $executable (qw(bwa samtools gatk3 picard)) {
+for my $executable (qw(bwa samtools gatk3 picard minimap2)) {
    if (my $canrun = can_run($executable)){
       print "<INFO>\t",timer(),"\tFound $executable in your PATH!\n";}
    elsif ($canrun = can_run("$BIN_dir\/$executable")){
