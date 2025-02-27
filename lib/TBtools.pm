@@ -1478,6 +1478,7 @@ sub help { # print a help message.
       <ESSENTIAL> This is an essential option! Choose your pipeline step as a parameter!
       TBfull      Full workflow
       TBbwa       Read mapping
+      TBminimap2  Read mapping
       TBrefine    Refinement of mapping(s)
       TBpile      Creation of mpileup file(s)
       TBlist      Creation of position list(s)
@@ -1561,6 +1562,9 @@ sub help { # print a help message.
 
    MTBseq --step TBbwa --continue
    Default values and execute the \"TBbwa\" module as well as the downstream modules.
+
+   MTBseq --step TBminimap2 --continue
+   Default values and execute the \"TBminimap\" module as well as the downstream modules.
 
    MTBseq --step TBfull --threads 8 --lowfreq_vars --minfreq 20 --mincovf 2 --mincovr 2 --intregions /path/to/intregions/file
    Execute the whole pipeline with 8 threads, reporting low frequency variants with altered minimum threshholds and using an alternative intregions file.
